@@ -1,0 +1,156 @@
+\ProvidesFile{tikzlibrarybeamer-utilities.code.tex}[%
+  2021/08/18
+  v1.0
+  TikZ library with Beamer utilities]
+
+
+% Overlay-aware styles, from
+% https://tex.stackexchange.com/a/6155/86
+% by Matthew Leingang
+\tikzset{
+  onslide/.code args={<#1>#2}%
+  {%
+    \only<#1>{%
+      \pgfkeysalso{#2}%
+    }%
+  },
+  temporal/.code args={<#1>#2#3#4}%
+  {%
+    \temporal<#1>{%
+      \pgfkeysalso{#2}%
+    }{%
+      \pgfkeysalso{#3}%
+    }{%
+      \pgfkeysalso{#4}%
+    }%
+  },
+  alt/.code args={<#1>#2#3}%
+  {%
+    \alt<#1>{%
+      \pgfkeysalso{#2}%
+    }{%
+      \pgfkeysalso{#3}%
+    }%
+  },
+}
+
+
+% Prevent a TikZ picture from "jumping", from
+% https://tex.stackexchange.com/a/51638/86
+% by Andrew Stacey
+\newcount\jump@picture@id
+\resetcountonoverlays{jump@picture@id}
+
+\def\jump@scale{1}
+\def\jump@offset{0pt}
+\def\jump@setbb#1#2#3{%
+  \@ifundefined{jump@#1@maxbb}{%
+    \expandafter\gdef\csname jump@#1@maxbb\endcsname{#3}%
+  }{%
+    \csname jump@#1@maxbb\endcsname
+    \pgf@xa=\pgf@x
+    \pgf@ya=\pgf@y
+    #3
+    \pgfmathsetlength\pgf@x{max(\pgf@x,\pgf@xa)}%
+    \pgfmathsetlength\pgf@y{max(\pgf@y,\pgf@ya)}%
+    \expandafter\xdef\csname jump@#1@maxbb\endcsname{\noexpand\pgfpoint{\the\pgf@x}{\the\pgf@y}}%
+  }
+  \@ifundefined{jump@#1@minbb}{%
+    \expandafter\gdef\csname jump@#1@minbb\endcsname{#2}%
+  }{%
+    \csname jump@#1@minbb\endcsname
+    \pgf@xa=\pgf@x
+    \pgf@ya=\pgf@y
+    #2
+    \pgfmathsetlength\pgf@x{min(\pgf@x,\pgf@xa)}%
+    \pgfmathsetlength\pgf@y{min(\pgf@y,\pgf@ya)}%
+    \expandafter\xdef\csname jump@#1@minbb\endcsname{\noexpand\pgfpoint{\the\pgf@x}{\the\pgf@y}}%
+  }
+}
+\tikzset{
+  stop jumping/.style={
+    execute at end picture={%
+      \pgfmathsetlength\pgf@xa{\pgf@picminx/\jump@scale}%
+      \pgfmathsetlength\pgf@ya{\pgf@picminy/\jump@scale}%
+      \pgfmathsetlength\pgf@xb{\pgf@picmaxx/\jump@scale}%
+      \pgfmathsetlength\pgf@yb{\pgf@picmaxy/\jump@scale}%
+      \immediate\write\pgfutil@auxout{%
+        \noexpand\jump@setbb{\the\jump@picture@id}{\noexpand\pgfpoint{\the\pgf@xa}{\the\pgf@ya}}{\noexpand\pgfpoint{\the\pgf@xb}{\the\pgf@yb}}%
+      },
+      \pgf@x=\pgf@picminx
+      \pgf@y=\pgf@picminy
+      \csname jump@\the\jump@picture@id @minbb\endcsname
+      \pgfmathsetlength\pgf@xa{\pgf@x*\jump@scale}%
+      \pgfmathsetlength\pgf@ya{\pgf@y*\jump@scale}%
+      \pgf@protocolsizes\pgf@xa\pgf@ya
+      \pgf@x=\pgf@picmaxx
+      \pgf@y=\pgf@picmaxy
+      \csname jump@\the\jump@picture@id @maxbb\endcsname
+      \pgfmathsetlength\pgf@xa{\pgf@x*\jump@scale}%
+      \pgfmathsetlength\pgf@ya{\pgf@y*\jump@scale}%
+      \pgf@protocolsizes\pgf@xa\pgf@ya
+    },
+  },
+  max size/.code 2 args={%
+    \pgfutil@ifundefined{jump@\the\jump@picture@id @maxbb}{}{%
+      \csname jump@\the\jump@picture@id @maxbb\endcsname
+      \pgf@xa=\pgf@x
+      \pgf@ya=\pgf@y
+      \csname jump@\the\jump@picture@id @minbb\endcsname
+      \advance\pgf@xa by -\pgf@x
+      \advance\pgf@ya by -\pgf@y
+      \advance\pgf@xa by \jump@offset
+      \advance\pgf@xa by \jump@offset
+      \advance\pgf@ya by \jump@offset
+      \advance\pgf@ya by \jump@offset
+      \pgfmathsetmacro\jump@xratio{\pgf@xa > #1 ? #1/\pgf@xa : 1}%
+      \pgfmathsetmacro\jump@yratio{\pgf@ya > #2 ? #2/\pgf@ya : 1}%
+      \pgfmathsetmacro\jump@scale{min(\jump@xratio,\jump@yratio)}%
+      \pgfkeys{/tikz/scale=\jump@scale}%
+    }
+  },
+  enclosing box/offset/.store in=\jump@offset,
+  constrain/.style={
+    execute at begin picture=\constrain
+  }
+}
+
+
+
+\newcommand\constrain{%
+  \pgfutil@ifundefined{jump@\the\jump@picture@id @minbb}{}{%
+    \csname jump@\the\jump@picture@id @minbb\endcsname
+    \pgfmathsetlength\pgf@xa{\pgf@x-\jump@offset}%
+    \pgfmathsetlength\pgf@ya{\pgf@y-\jump@offset}%
+    \csname jump@\the\jump@picture@id @maxbb\endcsname
+    \pgfmathsetlength\pgf@xb{\pgf@x+\jump@offset}%
+    \pgfmathsetlength\pgf@yb{\pgf@y+\jump@offset}%
+    \edef\jump@temp{\noexpand\clip (\the\pgf@xa,\the\pgf@ya) rectangle (\the\pgf@xb,\the\pgf@yb);}
+    \ifpgf@relevantforpicturesize
+      \pgf@relevantforpicturesizefalse
+      \jump@temp
+      \pgf@relevantforpicturesizetrue
+    \else
+      \jump@temp
+    \fi
+  }%
+}
+
+\expandafter\def\csname pgf@sh@ns@enclosing box\endcsname{rectangle}
+\expandafter\def\csname pgf@sh@np@enclosing box\endcsname{%
+  \pgfutil@ifundefined{jump@\the\jump@picture@id @minbb}{%
+    \def\southwest{\pgfqpoint{\pgf@picminx}{\pgf@picminy}}%
+    \def\northeast{\pgfqpoint{\pgf@picmaxx}{\pgf@picmaxy}}%
+}{%
+    \csname jump@\the\jump@picture@id @minbb\endcsname
+    \pgfmathsetlength\pgf@xa{\pgf@x-\jump@offset}%
+    \pgfmathsetlength\pgf@ya{\pgf@y-\jump@offset}%
+    \edef\southwest{\noexpand\pgfqpoint{\the\pgf@xa}{\the\pgf@ya}}%
+    \csname jump@\the\jump@picture@id @maxbb\endcsname
+    \pgfmathsetlength\pgf@xb{\pgf@x+\jump@offset}%
+    \pgfmathsetlength\pgf@yb{\pgf@y+\jump@offset}%
+    \edef\northeast{\noexpand\pgfqpoint{\the\pgf@xb}{\the\pgf@yb}}%
+  }%
+}
+\expandafter\def\csname pgf@sh@nt@enclosing box\endcsname{{1}{0}{0}{1}{0pt}{0pt}}
+\expandafter\def\csname pgf@sh@pi@enclosing box\endcsname{\pgfpictureid}
