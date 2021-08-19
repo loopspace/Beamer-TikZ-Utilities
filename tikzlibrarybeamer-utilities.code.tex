@@ -68,7 +68,11 @@
   }
 }
 \tikzset{
+  advance jump id/.code={
+    \global\advance\jump@picture@id by 1\relax
+  },
   stop jumping/.style={
+    advance jump id,
     execute at end picture={%
       \pgfmathsetlength\pgf@xa{\pgf@picminx/\jump@scale}%
       \pgfmathsetlength\pgf@ya{\pgf@picminy/\jump@scale}%
