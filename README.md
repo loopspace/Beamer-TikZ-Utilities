@@ -26,6 +26,8 @@ Originally designed by [Matthew Leingang](https://tex.stackexchange.com/users/14
   
 ## Jumping Pictures
 
+Originally designed by [me](https://tex.stackexchange.com/users/86/andrew-stacey) from [How can I fix jumping TikZ pictures in beamer?](https://tex.stackexchange.com/a/51638/86).
+
 If a picture is built up from components that are added bit by bit
 then the whole picture might jump around since TeX just uses its
 bounding box to place it on the page.
