@@ -4,6 +4,9 @@ Collected here are some useful things that make beamer and TikZ play a
 bit nicer together.
 They are currently all based on ideas from
 [TeX-SX](https://tex.stackexchange.com).
+Some parts of them are available in existing packages and this might
+conflict with them.
+_Caveat TeXor_
 
 ## Overlay-Aware Styles
 
@@ -24,6 +27,8 @@ Originally designed by [Matthew Leingang](https://tex.stackexchange.com/users/14
   Uses `style set 2` when the `overlay specification` matches,
   otherwise uses `style set 1` if before and `style set 3` if after.
   
+The `alt` code is available in the library [`overlay-beamer-styles`](https://ctan.org/pkg/aobs-tikz).
+
 ## Jumping Pictures
 
 Originally designed by [me](https://tex.stackexchange.com/users/86/andrew-stacey) from [How can I fix jumping TikZ pictures in beamer?](https://tex.stackexchange.com/a/51638/86).
@@ -69,3 +74,5 @@ different frames.
   getting bigger on each run.
 
   
+This code is available as part of my
+[`rulercompass`](https://ctan.org/pkg/rulercompass) package.
